@@ -72,10 +72,8 @@ AI 시스템은 다음과 같이 진행되었습니다.
 
     ```
     # 새로운 데이터 예측 함수 정의
+    # 시간, 온도, 습도, 전도도 값을 입력받아 도로 상태를 예측
     def predict_road_status(hour, temp, humi, cond):
-        """
-        시간, 온도, 습도, 전도도 값을 입력받아 도로 상태를 예측
-        """
         # 모델 학습 시 사용했던 특성 순서대로 정렬 (time_hour, temperature, humidity, conductivity)
         new_data = pd.DataFrame([[hour, temp, humi, cond]],
         columns = ['time_hour', 'temperature', 'humidity', 'conductivity'])
