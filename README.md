@@ -22,7 +22,7 @@
 
 **시스템 소개**
 
-저희 시스템은 저가, 저전력 모듈을 통한 AI 기반 도로결빙 감지 시스템입니다. 저가, 저전력이란 중심적인 목적을 두었으며 저렴한 센서들이 탑재된 자체 제작 모듈, 랜덤포레스트 분류기를 활용한 경량 AI 모델로써 이를 설명합니다. 서비스는 웹을 통해 사용자에게 제공합니다.
+저희 시스템은 저가, 저전력 모듈을 통한 AI 기반 도로결빙 감지 시스템입니다. 저가, 저전력이란 중심적인 목적을 두었으며 저렴한 센서들이 탑재된 자체 제작 모듈, 랜덤포레스트 분류기를 활용한 경량 AI 모델로써 이를 설명합니다. 서비스는 웹을 통해 도로 결빙 여부를 사용자에게 제공합니다.
 
 ---
 ## AI 시스템
@@ -48,11 +48,50 @@ AI 시스템은 다음과 같이 진행되었습니다.
 
 2. **AI 모델 학습**
 
-    저희 모델은 데이터 특성상 구분이 확실하기 때문에 랜덤포레스트 분류기가 훌륭한 성능을 발휘할 것이라 판단하여 이를 기반으로 하여 학습을 진행하였습니다. 예상한 결과 정확도 또한 100에 가까운 성능을 보였습니다.
+    저희 모델은 데이터 특성상 전극 값의 구분이 확실하기 때문에 랜덤포레스트 분류기가 훌륭한 성능을 발휘할 것이라 판단하여 이를 기반으로 하여 학습을 진행하였습니다. 예상한 결과, 정확도 또한 1에 가까운 성능을 보였습니다.
 
 3. **모델 적용**
 
     모델을 저희 시스템에 적용시키기 위해 파이썬을 기반하여 코드를 작성하였습니다. 
+
+    **모델 사용에 관해**
+
+    ```
+    # 모델 로드
+    loaded_model = None
+    model_path = 'conductivity-prediction-model.pkl'
+    try:
+        loaded_model = joblib.load(model_path)
+        print("200 OK: File imported successfully")
+    ```
+
+    ```
+    # 새로운 데이터 예측 함수 정의
+    def predict_road_status(hour, temp, humi, cond):
+        """
+        시간, 온도, 습도, 전도도 값을 입력받아 도로 상태를 예측
+        """
+        # 모델 학습 시 사용했던 특성 순서대로 정렬 (time_hour, temperature, humidity, conductivity)
+        new_data = pd.DataFrame([[hour, temp, humi, cond]],
+        columns = ['time_hour', 'temperature', 'humidity', 'conductivity'])
+
+        # 예측 수행
+        prediction = loaded_model.predict(new_data)
+
+        return prediction[0]
+    ```
+
+
+    ```
+    # 측정값 대입
+    status = predict_road_status(hour=21, temp=10, humi=100, cond=130)
+    ```
+
+    Conductivity의 대략적 기준
+
+    - Dry: 850 ~ 1000 -> "안전"
+    - Frozen: 150 ~ 850 -> "눈길(위험)"
+    - Wet: 0 ~ 100정도 -> "빗길(조심)"
 
 **코드 파일**
 
@@ -63,15 +102,3 @@ Graduation-Project-2-AI/
 ├── road-icing-detection.ipynb              # 모델 적용 코드
 └── README.md
 ```
-
-**모델 사용에 관해**
-
-```
-status = predict_road_status(hour=21, temp=10, humi=100, cond=130)
-```
-
-Conductivity의 대략적 기준
-
-- Dry: 850 ~ 1000 -> "안전"
-- Frozen: 150 ~ 850 -> "눈길(위험)"
-- Wet: 0 ~ 100정도 -> "빗길(조심)"
